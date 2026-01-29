@@ -5,17 +5,25 @@ async function getToDos() {
   return json;
 }
 
-const todoList = document.querySelector("todo-list");
-
 async function renderQ1() {
   let todo = await getToDos();
 
-  todo.forEach((todo) => {
-    let li = document.createElement("li");
-    let questionOne = document.querySelector("#todo-list");
-    questionOne.append(li);
+  let latestID = 0;
+  let questionOne;
 
+  todo.forEach((todo) => {
+    if (todo.userId !== latestID) {
+      latestID = todo.userId;
+      let h3 = document.createElement("h3");
+      h3.innerText = `To do List for User ${todo.userId}`;
+      questionOne = document.createElement("ul");
+      questionOne.style.border = "1px solid black";
+      document.querySelector("#Q1").append(h3, questionOne);
+    }
+
+    let li = document.createElement("li");
     li.innerText = todo.title;
+    questionOne.append(li);
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
@@ -86,14 +94,92 @@ filterBtn.addEventListener("click", () => {
 async function renderQ3() {
   let users = await getUsers();
 
+  //Dom elements, add outside of foreach so you crate the container and append it once and then just reuse it
+  const userInfo = document.createElement("div");
+  userInfo.classList.add("user-info");
+  userInfo.style.display = "none";
+  const q3Container = document.querySelector(".Q3-container");
+  q3Container.append(userInfo);
+
   users.forEach((user) => {
+    async function getUserPosts() {
+      const response = await fetch(
+        `https://jsonplaceholder.typicode.com/user/${user.id}/posts`,
+      );
+      const json = response.json();
+      return json;
+    }
+
+    async function getUsersTodos() {
+      const response = await fetch(
+        `https://jsonplaceholder.typicode.com/user/${user.id}/todos`,
+      );
+      const json = response.json();
+      return json;
+    }
+
     const li = document.createElement("li");
     const userList = document.querySelector("#get-name");
     li.innerText = user.name;
+
     const showInfoBtn = document.createElement("button");
+    showInfoBtn.classList.add("show-info");
     showInfoBtn.innerText = "Show Info";
+    showInfoBtn.addEventListener("click", async () => {
+      userInfo.innerHTML = "";
+
+      //to get the data for posts + todos
+      let userPosts = await getUserPosts();
+      let userTodos = await getUsersTodos();
+
+      const name = document.createElement("p");
+      name.innerText = `Name: ${user.name}`;
+
+      const city = document.createElement("p");
+      city.innerText = `City: ${user.address.city}`;
+
+      const postTitle = document.createElement("p");
+      postTitle.innerText = "User Posts:";
+      const postsList = document.createElement("ul");
+      userPosts.forEach((post) => {
+        const userPost = document.createElement("li");
+        userPost.innerText = post.title;
+        postsList.append(userPost);
+      });
+
+      const unfinishedTodos = document.createElement("p");
+      unfinishedTodos.innerText = "Unfinished Todos:";
+      const todoList = document.createElement("ul");
+      userTodos.forEach((todo) => {
+        const todos = document.createElement("li");
+        if (!todo.completed) {
+          todos.innerText = todo.title;
+          todoList.append(todos);
+        }
+      });
+
+      userInfo.append(
+        name,
+        city,
+        postTitle,
+        postsList,
+        unfinishedTodos,
+        todoList,
+      );
+
+      userInfo.style.display = "block";
+    });
+
     const deleteBtn = document.createElement("button");
+    deleteBtn.classList.add("delete-btn");
     deleteBtn.innerText = "Delete";
+    deleteBtn.addEventListener("click", () => {
+      if (confirm("Are you sure you want to delete this user from the list?")) {
+        deleteBtn.closest("li").remove();
+      }
+    });
+
+    console.log(user);
     li.append(showInfoBtn, deleteBtn);
     userList.append(li);
   });
