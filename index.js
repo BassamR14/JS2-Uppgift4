@@ -89,6 +89,8 @@ filterBtn.addEventListener("click", () => {
   renderQ2(chosenID);
 });
 
+//another way to filter out what we need is to just fetch the data for the user we want using userID while fetching the url. so url + input.value
+
 //3
 
 async function renderQ3() {
@@ -102,22 +104,6 @@ async function renderQ3() {
   q3Container.append(userInfo);
 
   users.forEach((user) => {
-    async function getUserPosts() {
-      const response = await fetch(
-        `https://jsonplaceholder.typicode.com/user/${user.id}/posts`,
-      );
-      const json = response.json();
-      return json;
-    }
-
-    async function getUsersTodos() {
-      const response = await fetch(
-        `https://jsonplaceholder.typicode.com/user/${user.id}/todos`,
-      );
-      const json = response.json();
-      return json;
-    }
-
     const li = document.createElement("li");
     const userList = document.querySelector("#get-name");
     li.innerText = user.name;
@@ -126,6 +112,23 @@ async function renderQ3() {
     showInfoBtn.classList.add("show-info");
     showInfoBtn.innerText = "Show Info";
     showInfoBtn.addEventListener("click", async () => {
+      //best practice, dont put these functions inside the button press, add them outside.
+      async function getUserPosts() {
+        const response = await fetch(
+          `https://jsonplaceholder.typicode.com/user/${user.id}/posts`,
+        );
+        const json = response.json();
+        return json;
+      }
+
+      async function getUsersTodos() {
+        const response = await fetch(
+          `https://jsonplaceholder.typicode.com/user/${user.id}/todos`,
+        );
+        const json = response.json();
+        return json;
+      }
+
       userInfo.innerHTML = "";
 
       //to get the data for posts + todos
@@ -175,7 +178,8 @@ async function renderQ3() {
     deleteBtn.innerText = "Delete";
     deleteBtn.addEventListener("click", () => {
       if (confirm("Are you sure you want to delete this user from the list?")) {
-        deleteBtn.closest("li").remove();
+        // deleteBtn.closest("li").remove();
+        li.remove();
       }
     });
 
@@ -186,3 +190,5 @@ async function renderQ3() {
 }
 
 renderQ3();
+
+//best practice, rather than create many functions to get data by fetch from different urls, create one function that fetches data and has the argument of url, use the api/sites you want as the parameter.
